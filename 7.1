@@ -1,0 +1,255 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <windows.h>
+
+// Структура для зберігання рядків інтерфейсу
+typedef struct {
+    char* strings[20]; // Масив рядків замість окремих полів
+} Language;
+
+// Константи для індексів рядкі
+enum StringIndices {
+    TITLE, DEVELOPER, PURPOSE1, PURPOSE2, ENTER_SENTENCE,
+    ERROR_ENDING, LETTER_FOUND, LETTER_NOT_FOUND, PUNCT_COUNT,
+    COUNT_MODE_TITLE, COUNT_MODE_UA, COUNT_MODE_EN, COUNT_MODE_BOTH,
+    COUNT_MODE_PROMPT, COUNT_MODE_ERROR, ERROR_WRONG_LANG_UA,
+    ERROR_WRONG_LANG_EN, END_PROMPT
+};
+
+// Спрощена функція очищення екрану
+void clearScreen() {
+    system("cls");
+}
+
+// Функція для перевірки символу
+int isPunctuation(char c) {
+    return strchr(".,;:!?()[]{}\"'-_/\\@#$%^&*+=", c) != NULL;
+}
+
+// Функція підрахунку розділових знаків
+int countPunctuation(const char *sentence) {
+    int count = 0;
+    for (int i = 0; sentence[i]; i++) {
+        count += isPunctuation(sentence[i]);
+    }
+    return count;
+}
+
+// Функції перевірки та підрахунку символів
+int isUkrainianP(const unsigned char *s, int pos) {
+    return (s[pos] == 0xD0 && (s[pos+1] == 0xBF || s[pos+1] == 0x9F));
+}
+
+int isEnglishP(char c) {
+    return (c == 'p' || c == 'P');
+}
+
+int countLetters(const char *sentence, int mode) {
+    int count = 0, i = 0;
+    const unsigned char *s = (const unsigned char *)sentence;
+    
+    while (s[i]) {
+        if ((mode == 1 || mode == 3) && isUkrainianP(s, i)) {
+            count++;
+            i += 2; // Пропускаємо наступний байт UTF-8
+        } else if ((mode == 2 || mode == 3) && isEnglishP(s[i])) {
+            count++;
+            i++;
+        } else {
+            i++;
+        }
+    }
+    return count;
+}
+
+// Перевірка наявності символів певної мови
+int hasChars(const char *text, int checkUkrainian) {
+    const unsigned char *s = (const unsigned char *)text;
+    for (int i = 0; s[i]; i++) {
+        if (checkUkrainian && (s[i] == 0xD0 || s[i] == 0xD1)) return 1;
+        if (!checkUkrainian && ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z'))) return 1;
+    }
+    return 0;
+}
+
+// Універсальна функція для вибору опцій
+int getOption(const char *title, const char **options, int count, const char *prompt, const char *error) {
+    int choice = 0;
+    char buffer[10];
+    
+    while (1) {
+        clearScreen();
+        printf("=================================================\n");
+        printf("= %-45s \n", title);
+        printf("=================================================\n");
+        
+        for (int i = 0; i < count; i++) {
+            printf(" %d. %-43s \n", i + 1, options[i]);
+        }
+        
+        printf("=================================================\n");
+        printf("%s", prompt);
+        
+        if (fgets(buffer, sizeof(buffer), stdin) == NULL || sscanf(buffer, "%d", &choice) != 1 || choice < 1 || choice > count) {
+            printf("\n%s\n", error);
+            system("pause");
+            continue;
+        }
+        
+        return choice;
+    }
+}
+
+// Функція ініціалізації мови
+void initLanguage(Language *lang, int langChoice) {
+    if (langChoice == 1) { // Українська
+        lang->strings[TITLE] = "Аналізатор речень";
+        lang->strings[DEVELOPER] = "Розробник: Мельник Дмитро";
+        lang->strings[PURPOSE1] = "Призначення: Аналіз символів 'п'/'p' та";
+        lang->strings[PURPOSE2] = "розділових знаків у реченні";
+        lang->strings[ENTER_SENTENCE] = "Введіть речення (має закінчуватися на '.', '!' або '?'): ";
+        lang->strings[ERROR_ENDING] = "Речення не закінчується на '.', '!' або '?'. Підраховую розділові знаки.";
+        lang->strings[LETTER_FOUND] = "Кількість символів 'п'/'p' у реченні: %d\n";
+        lang->strings[LETTER_NOT_FOUND] = "Символи 'п'/'p' відсутні у реченні.";
+        lang->strings[PUNCT_COUNT] = "Кількість розділових знаків у реченні: %d\n";
+        lang->strings[COUNT_MODE_TITLE] = "РЕЖИМ ПІДРАХУНКУ ЛІТЕР";
+        lang->strings[COUNT_MODE_UA] = "Тільки українська 'п'";
+        lang->strings[COUNT_MODE_EN] = "Тільки англійська 'p'";
+        lang->strings[COUNT_MODE_BOTH] = "Обидві літери 'п' і 'p'";
+        lang->strings[COUNT_MODE_PROMPT] = "Оберіть режим підрахунку (1-3): ";
+        lang->strings[COUNT_MODE_ERROR] = "Помилка! Будь ласка, введіть число від 1 до 3.";
+        lang->strings[ERROR_WRONG_LANG_UA] = "Помилка! Ви обрали режим підрахунку української літери 'п', але ввели текст без кириличних символів.";
+        lang->strings[ERROR_WRONG_LANG_EN] = "Помилка! Ви обрали режим підрахунку англійської літери 'p', але ввели текст без латинських символів.";
+        lang->strings[END_PROMPT] = "Натисніть будь-яку клавішу, щоб завершити програму...";
+    } else { // Англійська
+        lang->strings[TITLE] = "Sentence Analyzer";
+        lang->strings[DEVELOPER] = "Developer: Dmytro Melnyk";
+        lang->strings[PURPOSE1] = "Purpose: Analysis of 'п'/'p' characters and";
+        lang->strings[PURPOSE2] = "punctuation marks in a sentence";
+        lang->strings[ENTER_SENTENCE] = "Enter a sentence (must end with '.', '!' or '?'): ";
+        lang->strings[ERROR_ENDING] = "The sentence doesn't end with '.', '!' or '?'. Counting punctuation marks.";
+        lang->strings[LETTER_FOUND] = "Number of 'п'/'p' characters in the sentence: %d\n";
+        lang->strings[LETTER_NOT_FOUND] = "Characters 'п'/'p' are not present in the sentence.";
+        lang->strings[PUNCT_COUNT] = "Number of punctuation marks in the sentence: %d\n";
+        lang->strings[COUNT_MODE_TITLE] = "LETTER COUNTING MODE";
+        lang->strings[COUNT_MODE_UA] = "Ukrainian 'п' only";
+        lang->strings[COUNT_MODE_EN] = "English 'p' only";
+        lang->strings[COUNT_MODE_BOTH] = "Both letters 'п' and 'p'";
+        lang->strings[COUNT_MODE_PROMPT] = "Select counting mode (1-3): ";
+        lang->strings[COUNT_MODE_ERROR] = "Error! Please enter a number from 1 to 3.";
+        lang->strings[ERROR_WRONG_LANG_UA] = "Error! You selected Ukrainian letter 'п' counting mode, but entered text without Cyrillic characters.";
+        lang->strings[ERROR_WRONG_LANG_EN] = "Error! You selected English letter 'p' counting mode, but entered text without Latin characters.";
+        lang->strings[END_PROMPT] = "Press any key to exit the program...";
+    }
+}
+
+// Функція виведення шапки програми
+void displayHeader(const Language *lang) {
+    printf("====================================================\n");
+    printf("=            %-35s\n", lang->strings[TITLE]);
+    printf("=                                                  \n");
+    printf("= %-48s\n", lang->strings[DEVELOPER]);
+    printf("= %-48s\n", lang->strings[PURPOSE1]);
+    printf("=              %-38s\n", lang->strings[PURPOSE2]);
+    printf("====================================================\n");
+}
+
+int main() {
+    // Налаштування консолі для UTF-8
+    SetConsoleCP(65001);
+    SetConsoleOutputCP(65001);
+    
+    // Вибір мови
+    const char *langOptions[] = {"Українська", "English"};
+    int langChoice = getOption(
+        "LANGUAGE SELECTION / ВИБІР МОВИ",
+        langOptions,
+        2,
+        "Оберіть мову/Select language (1-2): ",
+        "Помилка! Будь ласка, введіть 1 або 2.\nError! Please enter 1 or 2."
+    );
+    
+    // Ініціалізація мовних рядків
+    Language lang;
+    initLanguage(&lang, langChoice);
+    
+    // Вивід шапки програми
+    clearScreen();
+    displayHeader(&lang);
+    
+    // Вибір режиму підрахунку
+    const char *modeOptions[] = {
+        lang.strings[COUNT_MODE_UA],
+        lang.strings[COUNT_MODE_EN],
+        lang.strings[COUNT_MODE_BOTH]
+    };
+    int countMode = getOption(
+        lang.strings[COUNT_MODE_TITLE],
+        modeOptions,
+        3,
+        lang.strings[COUNT_MODE_PROMPT],
+        lang.strings[COUNT_MODE_ERROR]
+    );
+    
+    // Введення та аналіз речення
+    clearScreen();
+    displayHeader(&lang);
+    
+    char sentence[1000];
+    printf("\n%s", lang.strings[ENTER_SENTENCE]);
+    
+    if (fgets(sentence, sizeof(sentence), stdin) == NULL) {
+        printf("Помилка при читанні вводу!\n");
+        return 1;
+    }
+    
+    // Видаляємо символ нового рядка
+    size_t len = strlen(sentence);
+    if (len > 0 && sentence[len-1] == '\n') {
+        sentence[--len] = '\0';
+    }
+    
+    // Перевірка закінчення речення і вибір режиму обробки
+    int validEnding = (len > 0 && (sentence[len-1] == '.' || sentence[len-1] == '!' || sentence[len-1] == '?'));
+    
+    if (!validEnding) {
+        printf("%s\n", lang.strings[ERROR_ENDING]);
+        int punctCount = countPunctuation(sentence);
+        printf(lang.strings[PUNCT_COUNT], punctCount);
+        printf("\n%s\n", lang.strings[END_PROMPT]);
+        system("pause >nul");
+        return 0;
+    }
+    
+    // Перевірка відповідності мови тексту режиму
+    if (countMode == 1 && !hasChars(sentence, 1)) {
+        printf("%s\n", lang.strings[ERROR_WRONG_LANG_UA]);
+        system("pause");
+        return 1;
+    }
+    
+    if (countMode == 2 && !hasChars(sentence, 0)) {
+        printf("%s\n", lang.strings[ERROR_WRONG_LANG_EN]);
+        system("pause");
+        return 1;
+    }
+    
+    // Підрахунок символів
+    int pCount = countLetters(sentence, countMode);
+    
+    if (pCount > 0) {
+        printf(lang.strings[LETTER_FOUND], pCount);
+    } else {
+        int punctCount = countPunctuation(sentence);
+        printf("%s\n", lang.strings[LETTER_NOT_FOUND]);
+        printf(lang.strings[PUNCT_COUNT], punctCount);
+    }
+    
+    // Пауза перед завершенням програми
+    printf("\n%s\n", lang.strings[END_PROMPT]);
+    system("pause >nul");
+    
+    return 0;
+}

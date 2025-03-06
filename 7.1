@@ -106,7 +106,7 @@ int getOption(const char *title, const char **options, int count, const char *pr
 void initLanguage(Language *lang, int langChoice) {
     if (langChoice == 1) { // Українська
         lang->strings[TITLE] = "Аналізатор речень";
-        lang->strings[DEVELOPER] = "Розробник: Мельник Дмитро";
+        lang->strings[DEVELOPER] = "Розробник: Волощук Єгор";
         lang->strings[PURPOSE1] = "Призначення: Аналіз символів 'п'/'p' та";
         lang->strings[PURPOSE2] = "розділових знаків у реченні";
         lang->strings[ENTER_SENTENCE] = "Введіть речення (має закінчуватися на '.', '!' або '?'): ";
@@ -125,7 +125,7 @@ void initLanguage(Language *lang, int langChoice) {
         lang->strings[END_PROMPT] = "Натисніть будь-яку клавішу, щоб завершити програму...";
     } else { // Англійська
         lang->strings[TITLE] = "Sentence Analyzer";
-        lang->strings[DEVELOPER] = "Developer: Dmytro Melnyk";
+        lang->strings[DEVELOPER] = "Developer: Волощук Єгор";
         lang->strings[PURPOSE1] = "Purpose: Analysis of 'п'/'p' characters and";
         lang->strings[PURPOSE2] = "punctuation marks in a sentence";
         lang->strings[ENTER_SENTENCE] = "Enter a sentence (must end with '.', '!' or '?'): ";

@@ -1,8 +1,0 @@
-# depslib dependency file v1.0
-1741901080 source:c:\git\laba-7\12345\prj\task 7.1.voloshyk\main.c
-	<stdio.h>
-	<stdlib.h>
-	<windows.h>
-	<time.h>
-	<string.h>
-

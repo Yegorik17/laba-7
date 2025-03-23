@@ -58,24 +58,21 @@ void drawBorder() {
     setColor(COLOR_DEFAULT);
 }
 
-// Функція для очищення буфера вводу
 void clearInputBuffer() {
     while (getchar() != '\n');
 }
 
-// Функція для виведення заголовків блоків
 void printHeader(const char* title) {
     drawBorder();
     printStyled(title, COLOR_YELLOW, 1);
     drawBorder();
 }
 
-// Функція для заповнення масиву
 void fillArray(float* array, int choice, const Localization* loc) {
     if (choice == 1) {
         printStyled(loc->generating, COLOR_GREEN, 1);
         for (int i = 0; i < ARRAY_SIZE; i++) {
-            array[i] = (float)(rand() % 200 - 100) / 10.0f; // Випадкові числа від -10.0 до 10.0
+            array[i] = (float)(rand() % 200 - 100) / 10.0f;
         }
         printStyled(loc->array_generated, COLOR_GREEN, 1);
     } else if (choice == 2) {
@@ -91,7 +88,6 @@ void fillArray(float* array, int choice, const Localization* loc) {
     }
 }
 
-// Функція для виведення масиву
 void printArray(float* array) {
     for (int i = 0; i < ARRAY_SIZE; i++) {
         printf("%.2f ", array[i]);
@@ -100,7 +96,6 @@ void printArray(float* array) {
 }
 
 int main() {
-    // Локалізація
     Localization en = {
         "=====================================================",
         "Developer: Voloshyk Yegor",
@@ -148,63 +143,49 @@ int main() {
         "\nСума елементів до першого від'ємного: %.2f\n\n",
         "Натисніть Enter для завершення..."
     };
-    
-    // Ініціалізація змінних
+
     Localization *loc;
     float array[ARRAY_SIZE];
     float sum = 0.0f;
     int found_negative = 0, i = 0;
-    
-    // Ініціалізація генератора випадкових чисел
+
     srand(time(NULL));
-    
-    // Очищення екрану
     system("cls");
-    
-    // Вибір мови
+
     printHeader("Program by Voloshyk Yegor - Laboratory work #7");
     printStyled("Choose language / Виберіть мову:", COLOR_GREEN, 1);
     printStyled("1 - English", COLOR_DEFAULT, 1);
     printStyled("2 - Ukrainian / Українська", COLOR_DEFAULT, 1);
     printf("\n");
-    
+
     printStyled("Your choice / Ваш вибір: ", COLOR_BRIGHT_WHITE, 0);
     int lang_choice;
     scanf("%d", &lang_choice);
     clearInputBuffer();
-    
-    // Встановлення локалізації
+
     loc = (lang_choice == 1) ? &en : &ua;
-    
-    // Очищення екрану та виведення інформації
     system("cls");
-    
-    // Інформація про програму
+
     printHeader(loc->developer);
     for (i = 0; i < 3; i++) {
         printStyled(loc->program_description[i], COLOR_DEFAULT, 1);
     }
     drawBorder();
     printf("\n");
-    
-    // Вибір методу заповнення
+
     printStyled(loc->choose_fill_method, COLOR_GREEN, 1);
     printStyled(loc->random_fill, COLOR_DEFAULT, 1);
     printStyled(loc->manual_fill, COLOR_DEFAULT, 1);
     printf("\n");
-    
+
     printStyled(loc->your_choice, COLOR_BRIGHT_WHITE, 0);
     int choice;
     scanf("%d", &choice);
     clearInputBuffer();
-    
-    // Заповнення масиву
+
     fillArray(array, choice, loc);
-    
-    // Очищення екрану
     system("cls");
-    
-    // Обчислення суми
+
     for (i = 0; i < ARRAY_SIZE; i++) {
         if (array[i] < 0) {
             found_negative = 1;
@@ -212,10 +193,9 @@ int main() {
         }
         sum += array[i];
     }
-    
-    // Виведення результатів
+
     printHeader("RESULTS / РЕЗУЛЬТАТИ");
-    
+
     if (!found_negative) {
         printStyled(loc->no_negative, COLOR_RED, 0);
         sum = 0;
@@ -224,278 +204,25 @@ int main() {
         printf(loc->first_negative, i + 1, array[i]);
         setColor(COLOR_DEFAULT);
     }
-    
+
     printf("\n");
     drawBorder();
-    
-    // Виведення масиву
+
     setColor(COLOR_BLUE);
     printf("%s\n", loc->array);
     setColor(COLOR_DEFAULT);
     printArray(array);
-    
-    // Виведення суми
+
     printf("\n");
     drawBorder();
     setColor(COLOR_YELLOW);
     printf(loc->sum, sum);
     setColor(COLOR_DEFAULT);
     drawBorder();
-    
-    // Завершення програми
+
     printf("\n");
     printStyled(loc->press_enter, COLOR_BRIGHT_WHITE, 0);
     getchar();
-    
-    return 0;
-}#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
-#include <time.h>
-#include <string.h>
 
-// Константи
-#define ARRAY_SIZE 19
-#define SCREEN_WIDTH 60
-#define COLOR_DEFAULT 7
-#define COLOR_BLUE 11
-#define COLOR_GREEN 10
-#define COLOR_YELLOW 14
-#define COLOR_BRIGHT_WHITE 15
-#define COLOR_RED 12
-
-// Структура для зберігання локалізованих рядків
-typedef struct {
-    const char* title;
-    const char* developer;
-    const char* program_description[3];
-    const char* choose_fill_method;
-    const char* random_fill;
-    const char* manual_fill;
-    const char* your_choice;
-    const char* generating;
-    const char* array_generated;
-    const char* enter_numbers;
-    const char* element;
-    const char* input_error;
-    const char* no_negative;
-    const char* first_negative;
-    const char* array;
-    const char* sum;
-    const char* press_enter;
-} Localization;
-
-// Допоміжні функції
-void setColor(int color) {
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-}
-
-void printStyled(const char* text, int color, int centered) {
-    setColor(color);
-    if (centered) {
-        int len = strlen(text);
-        int padding = (SCREEN_WIDTH - len - 2) / 2;
-        printf("|%*s%s%*s|\n", padding, "", text, padding + (len % 2), "");
-    } else {
-        printf("%s", text);
-    }
-    setColor(COLOR_DEFAULT);
-}
-
-void drawBorder() {
-    setColor(COLOR_BLUE);
-    printf("+%.*s+\n", SCREEN_WIDTH - 2, "-------------------------------------------------------");
-    setColor(COLOR_DEFAULT);
-}
-
-// Функція для очищення буфера вводу
-void clearInputBuffer() {
-    while (getchar() != '\n');
-}
-
-// Функція для виведення заголовків блоків
-void printHeader(const char* title) {
-    drawBorder();
-    printStyled(title, COLOR_YELLOW, 1);
-    drawBorder();
-}
-
-// Функція для заповнення масиву
-void fillArray(float* array, int choice, const Localization* loc) {
-    if (choice == 1) {
-        printStyled(loc->generating, COLOR_GREEN, 1);
-        for (int i = 0; i < ARRAY_SIZE; i++) {
-            array[i] = (float)(rand() % 200 - 100) / 10.0f; // Випадкові числа від -10.0 до 10.0
-        }
-        printStyled(loc->array_generated, COLOR_GREEN, 1);
-    } else if (choice == 2) {
-        printStyled(loc->enter_numbers, COLOR_GREEN, 1);
-        for (int i = 0; i < ARRAY_SIZE; i++) {
-            printf("%s %d: ", loc->element, i + 1);
-            while (scanf("%f", &array[i]) != 1) {
-                clearInputBuffer();
-                printStyled(loc->input_error, COLOR_RED, 1);
-                printf("%s %d: ", loc->element, i + 1);
-            }
-        }
-    }
-}
-
-// Функція для виведення масиву
-void printArray(float* array) {
-    for (int i = 0; i < ARRAY_SIZE; i++) {
-        printf("%.2f ", array[i]);
-    }
-    printf("\n");
-}
-
-int main() {
-    // Локалізація
-    Localization en = {
-        "=====================================================",
-        "Developer: Voloshyk Yegor",
-        {
-            "Program to calculate the sum of array elements located",
-            "before the first negative element. If there are no negative",
-            "elements, the result will be 0."
-        },
-        "Choose the array fill method:",
-        "1 - Fill with random numbers",
-        "2 - Enter manually",
-        "Your choice: ",
-        "\nGenerating random array...",
-        "Array generated!",
-        "Enter 19 real numbers:",
-        "Element",
-        "Input error. Please enter a valid number.",
-        "\nThere are no negative elements in the array.",
-        "\nThe first negative element is at position %d (value: %.2f).",
-        "\nArray: ",
-        "\nSum of elements before the first negative: %.2f\n\n",
-        "Press Enter to continue..."
-    };
-
-    Localization ua = {
-        "=====================================================",
-        "Розробник: Волощук Єгор",
-        {
-            "Програма для обчислення суми елементів масиву, розташованих",
-            "до першого від'ємного елемента. Якщо від'ємні елементи",
-            "відсутні, результат буде 0."
-        },
-        "Виберіть спосіб заповнення масиву:",
-        "1 - Заповнити випадковими числами",
-        "2 - Ввести вручну",
-        "Ваш вибір: ",
-        "\nГенерація випадкового масиву...",
-        "Масив згенеровано!",
-        "Введіть 19 дійсних чисел:",
-        "Елемент",
-        "Помилка вводу. Будь ласка, введіть дійсне число.",
-        "\nУ масиві немає від'ємних елементів.",
-        "\nПерший від'ємний елемент знаходиться на позиції %d (значення: %.2f).",
-        "\nМасив: ",
-        "\nСума елементів до першого від'ємного: %.2f\n\n",
-        "Натисніть Enter для завершення..."
-    };
-    
-    // Ініціалізація змінних
-    Localization *loc;
-    float array[ARRAY_SIZE];
-    float sum = 0.0f;
-    int found_negative = 0, i = 0;
-    
-    // Ініціалізація генератора випадкових чисел
-    srand(time(NULL));
-    
-    // Очищення екрану
-    system("cls");
-    
-    // Вибір мови
-    printHeader("Program by Voloshyk Yegor - Laboratory work #7");
-    printStyled("Choose language / Виберіть мову:", COLOR_GREEN, 1);
-    printStyled("1 - English", COLOR_DEFAULT, 1);
-    printStyled("2 - Ukrainian / Українська", COLOR_DEFAULT, 1);
-    printf("\n");
-    
-    printStyled("Your choice / Ваш вибір: ", COLOR_BRIGHT_WHITE, 0);
-    int lang_choice;
-    scanf("%d", &lang_choice);
-    clearInputBuffer();
-    
-    // Встановлення локалізації
-    loc = (lang_choice == 1) ? &en : &ua;
-    
-    // Очищення екрану та виведення інформації
-    system("cls");
-    
-    // Інформація про програму
-    printHeader(loc->developer);
-    for (i = 0; i < 3; i++) {
-        printStyled(loc->program_description[i], COLOR_DEFAULT, 1);
-    }
-    drawBorder();
-    printf("\n");
-    
-    // Вибір методу заповнення
-    printStyled(loc->choose_fill_method, COLOR_GREEN, 1);
-    printStyled(loc->random_fill, COLOR_DEFAULT, 1);
-    printStyled(loc->manual_fill, COLOR_DEFAULT, 1);
-    printf("\n");
-    
-    printStyled(loc->your_choice, COLOR_BRIGHT_WHITE, 0);
-    int choice;
-    scanf("%d", &choice);
-    clearInputBuffer();
-    
-    // Заповнення масиву
-    fillArray(array, choice, loc);
-    
-    // Очищення екрану
-    system("cls");
-    
-    // Обчислення суми
-    for (i = 0; i < ARRAY_SIZE; i++) {
-        if (array[i] < 0) {
-            found_negative = 1;
-            break;
-        }
-        sum += array[i];
-    }
-    
-    // Виведення результатів
-    printHeader("RESULTS / РЕЗУЛЬТАТИ");
-    
-    if (!found_negative) {
-        printStyled(loc->no_negative, COLOR_RED, 0);
-        sum = 0;
-    } else {
-        setColor(COLOR_GREEN);
-        printf(loc->first_negative, i + 1, array[i]);
-        setColor(COLOR_DEFAULT);
-    }
-    
-    printf("\n");
-    drawBorder();
-    
-    // Виведення масиву
-    setColor(COLOR_BLUE);
-    printf("%s\n", loc->array);
-    setColor(COLOR_DEFAULT);
-    printArray(array);
-    
-    // Виведення суми
-    printf("\n");
-    drawBorder();
-    setColor(COLOR_YELLOW);
-    printf(loc->sum, sum);
-    setColor(COLOR_DEFAULT);
-    drawBorder();
-    
-    // Завершення програми
-    printf("\n");
-    printStyled(loc->press_enter, COLOR_BRIGHT_WHITE, 0);
-    getchar();
-    
     return 0;
 }
